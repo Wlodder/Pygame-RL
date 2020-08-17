@@ -20,11 +20,13 @@ class q_network:
 
     def create_model(self, input_size,action_space_size):
         model = keras.Sequential()
-        model.add(keras.layers.Dense(15,input_shape=(input_size,),activation='relu'))
-        model.add(keras.layers.Dense(15,activation='relu'))
-        model.add(keras.layers.Dense(15,activation='relu'))
+        model.add(keras.layers.Dense(24,input_shape=(input_size,),activation='relu'))
+        model.add(keras.layers.Dense(24,activation='relu'))
+        model.add(keras.layers.Dense(36,activation='relu'))
+        model.add(keras.layers.Dense(36,activation='relu'))
+        model.add(keras.layers.Dense(24,activation='relu'))
         model.add(keras.layers.Dense(action_space_size,activation='linear'))
-        model.compile(optimizer='adam',loss='mse',metrics=['mae'])
+        model.compile(optimizer=keras.optimizers.Adam(lr=0.001),loss='mse',metrics=['mae'])
         return model
 
     def add_to_memories(self,observation, reward, done, next_observation, action):
@@ -60,7 +62,7 @@ class q_network:
             a = memory[4]
             reward = memory[1]
             done = memory[2]
-            if done:
+            if not done:
                 target = reward + self.gamma * np.max(self.target_model.predict(new_state))
             else:
                 target = reward
@@ -70,6 +72,7 @@ class q_network:
             y[i] = target_vec
             i += 1
         self.model.fit(X,y,verbose=0)
-        self.target_model.set_weights(self.model.get_weights())
         self.replay_memories.clear()
         
+    def update_target_model(self):
+        self.target_model.set_weights(self.model.get_weights())
